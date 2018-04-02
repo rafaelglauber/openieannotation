@@ -1,0 +1,314 @@
+object MainForm: TMainForm
+  Left = 179
+  Height = 680
+  Top = 9
+  Width = 1069
+  BorderIcons = [biSystemMenu, biMinimize]
+  Caption = 'Open IE annotations for Portuguese (by FORMAS)'
+  ClientHeight = 660
+  ClientWidth = 1069
+  Menu = MainMenu
+  OnClose = FormClose
+  OnDestroy = FormDestroy
+  OnShow = FormShow
+  Position = poWorkAreaCenter
+  LCLVersion = '1.8.2.0'
+  object Label1: TLabel
+    Left = 7
+    Height = 17
+    Top = 0
+    Width = 137
+    Caption = 'Noun Phrase 1 (ARG1)'
+    Font.Height = -13
+    Font.Style = [fsBold]
+    ParentColor = False
+    ParentFont = False
+  end
+  object Label2: TLabel
+    Left = 565
+    Height = 17
+    Top = 0
+    Width = 137
+    Caption = 'Noun Phrase 2 (ARG2)'
+    Font.Height = -13
+    Font.Style = [fsBold]
+    ParentColor = False
+    ParentFont = False
+  end
+  object Label3: TLabel
+    Left = 7
+    Height = 17
+    Top = 48
+    Width = 110
+    Caption = 'Verb Phrase (REL)'
+    Font.Height = -13
+    Font.Style = [fsBold]
+    ParentColor = False
+    ParentFont = False
+  end
+  object labelCurrentFile: TLabel
+    Left = 7
+    Height = 17
+    Top = 640
+    Width = 87
+    Caption = 'CURRENT FILE'
+    Font.Height = -13
+    Font.Style = [fsBold]
+    ParentColor = False
+    ParentFont = False
+  end
+  object gridChunk: TStringGrid
+    Left = 7
+    Height = 160
+    Hint = 'Chunk list for the arguments of the extracted facts.'
+    Top = 283
+    Width = 688
+    ColCount = 2
+    Columns = <    
+      item
+        Title.Caption = 'Type'
+      end    
+      item
+        Title.Caption = 'Chunk'
+        Width = 600
+      end>
+    FixedCols = 0
+    Flat = True
+    Options2 = [goScrollToLastCol, goScrollToLastRow]
+    RowCount = 1
+    TabOrder = 3
+    OnClick = gridChunkClick
+  end
+  object memoCurrentPOSSentence: TMemo
+    Left = 7
+    Height = 120
+    Hint = 'Current sentence with POS annotations.'
+    Top = 160
+    Width = 1054
+    Font.Height = -13
+    Lines.Strings = (
+      'Lee (Barbara Hershey) é uma velha pintora casada com Frederick (Max von Sydow), Holly (Dianne Wiest) sonha em ser uma escritora e Hannah (Mia Farrow) é uma famosa atriz, perfeita em tudo na vida. Lee (Barbara Hershey) é uma velha pintora casada com Frederick (Max von Sydow), Holly (Dianne Wiest) sonha em ser uma escritora e Hannah (Mia Farrow) é uma famosa atriz, perfeita em tudo na vida.'
+    )
+    OnChange = memoCurrentPOSSentenceChange
+    ParentFont = False
+    ReadOnly = True
+    TabOrder = 4
+  end
+  object buttonShowSentences: TSpeedButton
+    Left = 941
+    Height = 31
+    Hint = 'Browse and select the sentences of the annotation file.'
+    Top = 64
+    Width = 120
+    Caption = 'Sentence list...'
+    OnClick = buttonShowSentencesClick
+  end
+  object editArg1: TEdit
+    Left = 7
+    Height = 29
+    Hint = 'Input the argument 1.'
+    Top = 16
+    Width = 495
+    Font.Height = -16
+    ParentFont = False
+    TabOrder = 0
+    Text = 'Noun Phrase 1'
+  end
+  object editArg2: TEdit
+    Left = 559
+    Height = 29
+    Hint = 'Input the argument 2.'
+    Top = 16
+    Width = 502
+    Font.Height = -16
+    ParentFont = False
+    TabOrder = 2
+    Text = 'Noun Phrase 2'
+  end
+  object editRel: TEdit
+    Left = 7
+    Height = 29
+    Hint = 'Input the relational phrase.'
+    Top = 64
+    Width = 495
+    Font.Height = -16
+    ParentFont = False
+    TabOrder = 1
+    Text = 'Verb Phrase'
+  end
+  object gridFact: TStringGrid
+    Left = 8
+    Height = 186
+    Hint = 'Open IE annotations.'
+    Top = 449
+    Width = 1054
+    ColCount = 4
+    Columns = <    
+      item
+        Title.Caption = 'Argument 1 - Noun Phrase'
+        Width = 350
+      end    
+      item
+        Title.Caption = 'Relational Phrase - Verb Phrase'
+        Width = 300
+      end    
+      item
+        Title.Caption = 'Argument 2 - Noun Phrase'
+        Width = 350
+      end    
+      item
+        Alignment = taCenter
+        Title.Alignment = taCenter
+        Title.Caption = 'Min'
+        Width = 30
+      end>
+    FixedCols = 0
+    Flat = True
+    Options2 = [goScrollToLastCol, goScrollToLastRow]
+    RowCount = 1
+    TabOrder = 5
+    OnClick = gridFactClick
+  end
+  object buttonDeleteCurrentFact: TSpeedButton
+    Left = 941
+    Height = 31
+    Hint = 'Remove selected annotation.'
+    Top = 412
+    Width = 120
+    Caption = 'Remove Fact'
+    OnClick = buttonDeleteCurrentFactClick
+  end
+  object buttonAddFact: TSpeedButton
+    Left = 941
+    Height = 31
+    Hint = 'Add the fact in the annotation list using the indicated arguments.'
+    Top = 283
+    Width = 120
+    Caption = 'Add Fact'
+    OnClick = buttonAddFactClick
+  end
+  object buttonClearArguments: TSpeedButton
+    Left = 703
+    Height = 31
+    Hint = 'Clear the edit controls.'
+    Top = 412
+    Width = 120
+    Caption = 'Clear Arguments'
+    OnClick = buttonClearArgumentsClick
+  end
+  object buttonAddArgument1: TSpeedButton
+    Left = 703
+    Height = 31
+    Hint = 'Add selected chunk to argument 1.'
+    Top = 283
+    Width = 120
+    Caption = 'Add Argument 1'
+    OnClick = buttonAddArgument1Click
+  end
+  object buttonAddArgument2: TSpeedButton
+    Left = 703
+    Height = 31
+    Hint = 'Add selected chunk to argument 2.'
+    Top = 345
+    Width = 120
+    Caption = 'Add Argument 2'
+    OnClick = buttonAddArgument2Click
+  end
+  object buttonAddRelationship: TSpeedButton
+    Left = 703
+    Height = 31
+    Hint = 'Add selected chunk to relational phrase.'
+    Top = 314
+    Width = 120
+    Caption = 'Add Relationship'
+    OnClick = buttonAddRelationshipClick
+  end
+  object checkBoxMinimalist: TCheckBox
+    Left = 559
+    Height = 25
+    Hint = 'Whether the fact is minimal or not.'
+    Top = 66
+    Width = 77
+    Caption = 'Minimal'
+    Font.Height = -16
+    ParentFont = False
+    TabOrder = 6
+  end
+  object viewCurrentSentence: THtmlViewer
+    Left = 7
+    Height = 60
+    Top = 96
+    Width = 1054
+    BorderStyle = htFocused
+    HistoryMaxCount = 0
+    NoSelect = False
+    PrintMarginBottom = 2
+    PrintMarginLeft = 2
+    PrintMarginRight = 2
+    PrintMarginTop = 2
+    PrintScale = 1
+    TabOrder = 7
+    OnKeyDown = viewCurrentSentenceKeyDown
+  end
+  object MainMenu: TMainMenu
+    left = 383
+    top = 291
+    object MI_FILE: TMenuItem
+      Caption = 'File'
+      object MI_OPEN_FILE: TMenuItem
+        Caption = 'Open file'
+        OnClick = MI_OPEN_FILEClick
+      end
+      object MI_SAVE: TMenuItem
+        Caption = 'Save'
+        OnClick = MI_SAVEClick
+      end
+      object MI_SAVE_AS: TMenuItem
+        Caption = 'Save as...'
+        OnClick = MI_SAVE_ASClick
+      end
+      object MI_EXPORT: TMenuItem
+        Caption = 'Export Open IE'
+        object MI_EXP_RELONLY: TMenuItem
+          Caption = 'TXT (tab separation)'
+          OnClick = MI_EXP_RELONLYClick
+        end
+      end
+      object MI_SEPARATE1: TMenuItem
+        Caption = '-'
+      end
+      object MI_EXIT: TMenuItem
+        Caption = 'Exit'
+        OnClick = MI_EXITClick
+      end
+    end
+    object MI_AGREE: TMenuItem
+      Caption = 'Agreement'
+      object MI_KAPPA: TMenuItem
+        Caption = 'Cohen''s kappa'
+        OnClick = MI_KAPPAClick
+      end
+    end
+  end
+  object OpenDialogAnnotationFile: TOpenDialog
+    Title = 'Open annotation file'
+    DefaultExt = '.ann'
+    Filter = 'Annotation File|*.ann'
+    left = 383
+    top = 347
+  end
+  object SaveDialogAnnotationFile: TSaveDialog
+    Title = 'Save annotation file'
+    DefaultExt = '.ann'
+    Filter = 'Annotation File|*.ann'
+    left = 208
+    top = 352
+  end
+  object SaveDialogExportTXT: TSaveDialog
+    Title = 'Export annotation to TXT file'
+    DefaultExt = '.txt'
+    Filter = 'Plain text|*.txt'
+    left = 86
+    top = 353
+  end
+end

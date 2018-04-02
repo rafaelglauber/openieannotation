@@ -1,0 +1,35 @@
+object FormSentences: TFormSentences
+  Left = 367
+  Height = 300
+  Top = 207
+  Width = 700
+  BorderIcons = []
+  BorderStyle = bsNone
+  Caption = 'Sentence list'
+  ClientHeight = 300
+  ClientWidth = 700
+  OnClose = FormClose
+  Position = poScreenCenter
+  LCLVersion = '1.8.0.6'
+  object gridSentences: TStringGrid
+    Left = 0
+    Height = 300
+    Top = 0
+    Width = 700
+    Align = alClient
+    ColCount = 2
+    Columns = <    
+      item
+        Title.Caption = 'ID'
+      end    
+      item
+        Title.Caption = 'Sentence'
+        Width = 610
+      end>
+    FixedCols = 0
+    RowCount = 1
+    TabOrder = 0
+    OnClick = gridSentencesClick
+    OnDblClick = gridSentencesDblClick
+  end
+end
