@@ -1,0 +1,157 @@
+object FormAgreement: TFormAgreement
+  Left = 279
+  Height = 600
+  Top = 57
+  Width = 866
+  BorderStyle = bsDialog
+  Caption = 'Calculate agreement'
+  ClientHeight = 600
+  ClientWidth = 866
+  Position = poScreenCenter
+  LCLVersion = '1.8.2.0'
+  object GroupBox1: TGroupBox
+    Left = 8
+    Height = 113
+    Top = 8
+    Width = 848
+    Caption = 'Annotations files'
+    ClientHeight = 93
+    ClientWidth = 844
+    TabOrder = 0
+    object listAnnotationFile: TListBox
+      Left = 8
+      Height = 90
+      Top = 0
+      Width = 704
+      ItemHeight = 0
+      OnClick = listAnnotationFileClick
+      TabOrder = 0
+    end
+    object buttonAddFile: TSpeedButton
+      Left = 718
+      Height = 31
+      Top = 0
+      Width = 120
+      Caption = 'Add file...'
+      OnClick = buttonAddFileClick
+    end
+    object buttonClearListFile: TSpeedButton
+      Left = 718
+      Height = 31
+      Top = 59
+      Width = 120
+      Caption = 'Clear'
+      OnClick = buttonClearListFileClick
+    end
+  end
+  object GroupBox2: TGroupBox
+    Left = 8
+    Height = 448
+    Top = 144
+    Width = 608
+    Caption = 'Agreement data'
+    ClientHeight = 428
+    ClientWidth = 604
+    TabOrder = 1
+    object memoAgreementInfo: TMemo
+      Left = 8
+      Height = 424
+      Top = 0
+      Width = 591
+      Color = clBlack
+      Font.Color = clLime
+      Font.Name = 'Courier New'
+      Lines.Strings = (
+        'none'
+      )
+      ParentFont = False
+      ReadOnly = True
+      TabOrder = 0
+    end
+  end
+  object RadioGroupEqual: TRadioGroup
+    Left = 624
+    Height = 113
+    Top = 144
+    Width = 232
+    AutoFill = True
+    Caption = 'Equal calculation'
+    ChildSizing.LeftRightSpacing = 6
+    ChildSizing.EnlargeHorizontal = crsHomogenousChildResize
+    ChildSizing.EnlargeVertical = crsHomogenousChildResize
+    ChildSizing.ShrinkHorizontal = crsScaleChilds
+    ChildSizing.ShrinkVertical = crsScaleChilds
+    ChildSizing.Layout = cclLeftToRightThenTopToBottom
+    ChildSizing.ControlsPerLine = 1
+    ClientHeight = 93
+    ClientWidth = 228
+    ItemIndex = 0
+    Items.Strings = (
+      'Full - arguments and minimal'
+      'Partial - only arguments'
+      'Text - concatenated arguments'
+    )
+    TabOrder = 2
+  end
+  object LabelCurrentFile: TLabel
+    Left = 8
+    Height = 15
+    Top = 122
+    Width = 59
+    Caption = 'Current file'
+    ParentColor = False
+  end
+  object RadioGroupMode: TRadioGroup
+    Left = 624
+    Height = 80
+    Top = 272
+    Width = 232
+    AutoFill = True
+    Caption = 'Mode'
+    ChildSizing.LeftRightSpacing = 6
+    ChildSizing.EnlargeHorizontal = crsHomogenousChildResize
+    ChildSizing.EnlargeVertical = crsHomogenousChildResize
+    ChildSizing.ShrinkHorizontal = crsScaleChilds
+    ChildSizing.ShrinkVertical = crsScaleChilds
+    ChildSizing.Layout = cclLeftToRightThenTopToBottom
+    ChildSizing.ControlsPerLine = 1
+    ClientHeight = 60
+    ClientWidth = 228
+    ItemIndex = 0
+    Items.Strings = (
+      'Annotation'
+      'Evaluation'
+    )
+    TabOrder = 3
+  end
+  object buttonRun: TSpeedButton
+    Left = 672
+    Height = 31
+    Top = 368
+    Width = 120
+    Caption = 'Calculate!'
+    OnClick = buttonRunClick
+  end
+  object buttonUnify: TSpeedButton
+    Left = 672
+    Height = 31
+    Top = 400
+    Width = 120
+    Caption = 'Unify files...'
+    OnClick = buttonUnifyClick
+  end
+  object OpenDialogAnnotation: TOpenDialog
+    Title = 'Open annotation file'
+    DefaultExt = '.ann'
+    Filter = 'Annotation File|*.ann'
+    left = 360
+    top = 248
+  end
+  object SaveDialogAnnotation: TSaveDialog
+    Title = 'Save annotation file'
+    DefaultExt = '.ann'
+    Filter = 'Annotation File|*.ann'
+    left = 368
+    top = 312
+  end
+end

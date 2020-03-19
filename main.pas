@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, SynEdit, Forms, Controls, Graphics, Dialogs,
-  StdCtrls, Menus, Grids, Buttons, UClasses, HtmlView;
+  StdCtrls, Menus, Grids, Buttons, ExtCtrls, UClasses, utypes;
 
 type
 
@@ -19,20 +19,36 @@ type
     buttonAddFact: TSpeedButton;
     buttonAddArgument2: TSpeedButton;
     buttonAddRelationship: TSpeedButton;
-    checkBoxMinimalist: TCheckBox;
+    buttonShowSentences1: TSpeedButton;
+    buttonUpdateFact: TSpeedButton;
+    checkValidFact: TCheckBox;
+    checkValidMinimal: TCheckBox;
+    checkBoxMinimal: TCheckBox;
     editArg1: TEdit;
     editArg2: TEdit;
     editRel: TEdit;
     gridFact: TStringGrid;
+    GroupBox1: TGroupBox;
+    labelCurrentSentence: TLabel;
+    MI_ARGOE: TMenuItem;
+    MI_PRAGMATICOIE: TMenuItem;
+    MI_INFERPORTOIE: TMenuItem;
+    MI_DPTOIE: TMenuItem;
+    MI_DEPENDENTIE: TMenuItem;
+    MI_OIE_FILES: TMenuItem;
+    MI_IBERLEF19: TMenuItem;
+    MI_IMPORT_SENT: TMenuItem;
+    MI_CLOSE_FILE: TMenuItem;
     MI_AGREE: TMenuItem;
-    MI_KAPPA: TMenuItem;
-    viewCurrentSentence: THtmlViewer;
+    MI_CALC_AGREE: TMenuItem;
+    OpenDialogOIEFile: TOpenDialog;
+    OpenDialogSentenceFile: TOpenDialog;
+    RadioGroup1: TRadioGroup;
     Label1: TLabel;
     Label2: TLabel;
     Label3: TLabel;
     labelCurrentFile: TLabel;
     MainMenu: TMainMenu;
-    memoCurrentPOSSentence: TMemo;
     MI_EXP_RELONLY: TMenuItem;
     MI_EXPORT: TMenuItem;
     MI_SAVE: TMenuItem;
@@ -46,27 +62,38 @@ type
     gridChunk: TStringGrid;
     SaveDialogExportTXT: TSaveDialog;
     SaveDialogAnnotationFile: TSaveDialog;
+    viewCurrentSentence: TStaticText;
     procedure buttonAddArgument1Click(Sender: TObject);
     procedure buttonAddArgument2Click(Sender: TObject);
     procedure buttonAddFactClick(Sender: TObject);
     procedure buttonAddRelationshipClick(Sender: TObject);
     procedure buttonClearArgumentsClick(Sender: TObject);
     procedure buttonDeleteCurrentFactClick(Sender: TObject);
+    procedure buttonShowSentences1Click(Sender: TObject);
+    procedure buttonUpdateFactClick(Sender: TObject);
     procedure buttonShowSentencesClick(Sender: TObject);
+    procedure checkValidFactChange(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
+    procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure gridChunkClick(Sender: TObject);
     procedure gridFactClick(Sender: TObject);
-    procedure memoCurrentPOSSentenceChange(Sender: TObject);
+    procedure gridFactSelection(Sender: TObject; aCol, aRow: Integer);
+    procedure MI_ARGOEClick(Sender: TObject);
+    procedure MI_CLOSE_FILEClick(Sender: TObject);
+    procedure MI_DEPENDENTIEClick(Sender: TObject);
+    procedure MI_DPTOIEClick(Sender: TObject);
     procedure MI_EXP_RELONLYClick(Sender: TObject);
-    procedure MI_KAPPAClick(Sender: TObject);
+    procedure MI_CALC_AGREEClick(Sender: TObject);
+    procedure MI_IBERLEF19Click(Sender: TObject);
+    procedure MI_IMPORT_SENTClick(Sender: TObject);
     procedure MI_OPEN_FILEClick(Sender: TObject);
     procedure MI_EXITClick(Sender: TObject);
+    procedure MI_PRAGMATICOIEClick(Sender: TObject);
     procedure MI_SAVEClick(Sender: TObject);
     procedure MI_SAVE_ASClick(Sender: TObject);
-    procedure viewCurrentSentenceKeyDown(Sender: TObject; var Key: Word;
-      Shift: TShiftState);
+    procedure RadioGroup1Click(Sender: TObject);
   private
     FAnnotationFile: TAnnotationFile;
     FFormTitle: String;
@@ -76,23 +103,14 @@ type
     procedure LoadFormValues(mode: TLoadForm = lfAll);
     function CheckUpdate: Boolean;
     function ValidateFact: Boolean;
-    function ValidateDelFact: Boolean;
+    function ValidateDelUpFact: Boolean;
     function GetCurrentChunkText: String;
+    procedure SetMode;
+    procedure updateFactView;
   public
 
   end;
 
-resourcestring
-  MSG_CAPTION_QUESTION       = 'Question';
-  MSG_CAPTION_WARNING        = 'Warning';
-  MSG_CAPTION_ERRO           = 'Error';
-  MSG_MESSAGE_PENDENT_UPDATE = 'Do you want to save pending changes?';
-  MSG_MESSAGE_NO_PENDINGS    = 'No changes is current file.';
-  MSG_MESSAGE_NO_VALUE       = 'The field needs a value.';
-  MSG_MESSAGE_NO_ANNOTATIONF = 'There are no annotation in progress.';
-  MSG_MESSAGE_NO_CURRENTSENT = 'A sentence for annotation has not been selected.';
-  MSG_MESSAGE_NO_FACTS       = 'There are no facts to remove it.';
-  MSG_MESSAGE_DUPLICATED     = 'This fact is duplicated, please modify!';
 
 var
   MainForm: TMainForm;
@@ -100,25 +118,26 @@ var
 implementation
 
 uses
-  uformsentlist;
+  uformsentlist, uformagreement, uutils;
 
 {$R *.lfm}
 
 { TMainForm }
 
 procedure TMainForm.InitForm;
-var
-  I: Integer;
+//var
+//  I: Integer;
 begin
   editArg1.Clear;
   editArg2.Clear;
   editRel.Clear;
-  viewCurrentSentence.Clear;
-  memoCurrentPOSSentence.Clear;
+  viewCurrentSentence.Caption:= '';
 
   gridChunk.RowCount:= 1;
   gridFact.RowCount:= 1;
   FormSentences.gridSentences.RowCount:= 1;
+  labelCurrentFile.Caption:= 'NO FILE';
+  labelCurrentSentence.Caption:= 'NO SENTENCE';
   //for I:= 1 to gridChunk.RowCount - 3 do
   //  gridChunk.DeleteRow(I);
   //for I:= 1 to gridFact.RowCount - 3 do
@@ -133,7 +152,6 @@ begin
   if OpenDialogAnnotationFile.Execute then
   begin
     fileName := OpenDialogAnnotationFile.FileName;
-    labelCurrentFile.Caption:= fileName;
     if Assigned(FAnnotationFile) then
       FreeAndNil(FAnnotationFile);
     FAnnotationFile := TAnnotationFile.Create(fileName);
@@ -159,15 +177,18 @@ begin
       Self.Caption:= FFormTitle + '*'
     else
       Self.Caption:= FFormTitle;
-    // Load current sentence
+    // Set current file label
+    labelCurrentFile.Caption:= FAnnotationFile.GetFileName;
+    // Load current viewCurrentSentence
     currentSentence:= FAnnotationFile.GetCurrentSentence();
+    //
+    labelCurrentSentence.Caption:= 'CurrentSentID: ' + IntToStr(currentSentence.ID);
     //
     if Assigned(currentSentence) then
     begin
       if (mode = lfAll) then
       begin
-        viewCurrentSentence.LoadFromString('<p>' + currentSentence.Sentence + '</p>');
-        memoCurrentPOSSentence.Text:= currentSentence.SentenceAndPos;
+        viewCurrentSentence.Caption:= currentSentence.Sentence;
       end;
       // Load chunks
       if Assigned(currentSentence.Chunks) and (mode in [lfAll, lfChunk])  then
@@ -191,8 +212,9 @@ begin
                            (currentSentence.Annotations[I] as TOpenIEAnnotation).ToString;
         end;
       end;
+      //
     end;
-    // Load sentence list
+    // Load viewCurrentSentence list
     if Assigned(FAnnotationFile.Records) and (mode = lfAll) then
     begin
       FormSentences.gridSentences.RowCount:= 1;
@@ -247,7 +269,7 @@ begin
     FocusControl(editRel);
     Result:= False;
   end
-  else if FAnnotationFile.GetCurrentSentence.IsDuplicateFact(editArg1.Text, editRel.Text, editArg2.Text) then
+  else if FAnnotationFile.GetCurrentSentence.IsDuplicatedFact(editArg1.Text, editRel.Text, editArg2.Text) then
   begin
     MessageDlg(MSG_CAPTION_ERRO, MSG_MESSAGE_DUPLICATED, mtError, [mbCancel], 0);
     FocusControl(editArg1);
@@ -256,7 +278,7 @@ begin
 
 end;
 
-function TMainForm.ValidateDelFact: Boolean;
+function TMainForm.ValidateDelUpFact: Boolean;
 begin
   //
   Result:= True;
@@ -288,10 +310,111 @@ begin
     Result:= '';
 end;
 
+procedure TMainForm.SetMode;
+begin
+  // Clear edit controls
+  editArg1.Text:= '';
+  editArg2.Text:= '';
+  editRel.Text:= '';
+  // If Evaluation mode
+  if RadioGroup1.ItemIndex = 1 then
+  begin
+    // Annotation
+    editArg1.Enabled:= False;
+    editArg2.Enabled:= False;
+    editRel.Enabled:= False;
+    checkBoxMinimal.Enabled:= False;
+    buttonClearArguments.Enabled:= False;
+    buttonAddArgument1.Enabled:= False;
+    buttonAddArgument2.Enabled:= False;
+    buttonAddRelationship.Enabled:= False;
+    buttonAddFact.Enabled:= False;
+    buttonDeleteCurrentFact.Enabled:= False;
+    // Evaluation
+    checkValidFact.Enabled:= True;
+    checkValidMinimal.Enabled:= True;
+    checkValidFact.Checked:= True;
+    checkValidMinimal.Checked:= True;
+  end
+  // If Annotation mode
+  else
+  begin
+    // Annotation
+    editArg1.Enabled:= True;
+    editArg2.Enabled:= True;
+    editRel.Enabled:= True;
+    checkBoxMinimal.Enabled:= True;
+    buttonClearArguments.Enabled:= True;
+    buttonAddArgument1.Enabled:= True;
+    buttonAddArgument2.Enabled:= True;
+    buttonAddRelationship.Enabled:= True;
+    buttonAddFact.Enabled:= True;
+    buttonDeleteCurrentFact.Enabled:= True;
+    // Evaluation
+    checkValidFact.Enabled:= False;
+    checkValidMinimal.Enabled:= False;
+    checkValidFact.Checked:= True;
+    checkValidMinimal.Checked:= True;
+  end;
+  gridFactClick(gridFact);
+end;
+
+procedure TMainForm.updateFactView;
+var
+  arg1, rel, arg2, min, vf, vm: String;
+  //currentSentence: TOpenIERecord;
+  //viewCurrentSentence: String;
+//const
+  //REL_COLOR   = '#ffcc99';
+  //ARG1_COLOR  = '#33cccc';
+  //ARG2_COLOR  = '#ffff99';
+  //BEGIN_SPAN1 = '<span style="background-color: ';
+  //BEGIN_SPAN2 = ';">';
+  //END_SPAN    = '</span>';
+begin
+  if Assigned(FAnnotationFile) then
+  if gridFact.RowCount > 1 then
+  begin
+    arg1:= gridFact.Rows[gridFact.Row][0];
+    rel:= gridFact.Rows[gridFact.Row][1];
+    arg2:= gridFact.Rows[gridFact.Row][2];
+    min:= gridFact.Rows[gridFact.Row][3];
+    vf:= gridFact.Rows[gridFact.Row][4];
+    vm:=  gridFact.Rows[gridFact.Row][5];
+    if (arg1 <> '') and (rel <> '') and (arg2 <> '') then
+    begin
+      // Set argument edits
+      editArg1.Text:= arg1;
+      editArg2.Text:= arg2;
+      editRel.Text:= rel;
+      checkBoxMinimal.Checked:= min = '1';
+      checkValidFact.Checked:= vf = '1';
+      checkValidMinimal.Checked:= vm = '1';
+      // Load current viewCurrentSentence
+      //currentSentence:= FAnnotationFile.GetCurrentSentence();
+      //if Assigned(currentSentence) then
+      //begin
+        //viewCurrentSentence:= currentSentence.Sentence;
+        //viewCurrentSentence:= StringReplace(viewCurrentSentence, arg1, BEGIN_SPAN1 + ARG1_COLOR + BEGIN_SPAN2 + arg1 + END_SPAN, []);
+        //viewCurrentSentence:= StringReplace(viewCurrentSentence, rel, BEGIN_SPAN1 + REL_COLOR + BEGIN_SPAN2 + rel + END_SPAN, []);
+        //viewCurrentSentence:= StringReplace(viewCurrentSentence, arg2, BEGIN_SPAN1 + ARG2_COLOR + BEGIN_SPAN2 + arg2 + END_SPAN, []);
+        //viewCurrentSentence.LoadFromString('<p>' + viewCurrentSentence + '</p>');
+        //currentSentence:= Nil;
+      //end;
+    end;
+  end;
+end;
+
 // Form Events
 procedure TMainForm.MI_EXITClick(Sender: TObject);
 begin
   Close;
+end;
+
+procedure TMainForm.MI_PRAGMATICOIEClick(Sender: TObject);
+begin
+  if OpenDialogOIEFile.Execute then
+    TAnnotationFile.ConvertOIEToAnnotationFile(osPragmaticOIE, OpenDialogOIEFile.FileName);
 end;
 
 procedure TMainForm.MI_OPEN_FILEClick(Sender: TObject);
@@ -301,6 +424,10 @@ begin
   LoadFile();
   InitForm();
   LoadFormValues();
+  //
+  RadioGroup1.ItemIndex:= 0;
+  SetMode;
+  gridFactClick(gridFact);
 end;
 
 procedure TMainForm.MI_SAVEClick(Sender: TObject);
@@ -334,12 +461,18 @@ begin
     MessageDlg(MSG_CAPTION_WARNING, MSG_MESSAGE_NO_PENDINGS, mtWarning, [mbOK], 0);
 end;
 
-procedure TMainForm.viewCurrentSentenceKeyDown(Sender: TObject; var Key: Word;
-  Shift: TShiftState);
+procedure TMainForm.RadioGroup1Click(Sender: TObject);
 begin
-  if ((Key = Word('C')) or (Key = Word('c'))) and (Shift = [ssCtrl]) then
-    viewCurrentSentence.CopyToClipboard;
+  SetMode;
 end;
+
+
+//procedure TMainForm.viewCurrentSentenceKeyDown(Sender: TObject; var Key: Word;
+//  Shift: TShiftState);
+//begin
+//  if ((Key = Word('C')) or (Key = Word('c'))) and (Shift = [ssCtrl]) then
+//    viewCurrentSentence.CopyToClipboard;
+//end;
 
 procedure TMainForm.FormClose(Sender: TObject; var CloseAction: TCloseAction);
 begin
@@ -347,7 +480,14 @@ begin
     MI_SAVE_AS.Click;
   FormSentences.Free;
   FormSentences:= Nil;
+  FormAgreement.Free;
+  FormAgreement:= Nil;
   CloseAction:= caFree;
+end;
+
+procedure TMainForm.FormCreate(Sender: TObject);
+begin
+  FAnnotationFile:= Nil;
 end;
 
 procedure TMainForm.buttonShowSentencesClick(Sender: TObject);
@@ -356,6 +496,12 @@ begin
     FAnnotationFile.CurrentSentenceID := TFormSentences.getSelectedSentenceID();
   InitForm();
   LoadFormValues();
+  gridFactClick(gridFact);
+end;
+
+procedure TMainForm.checkValidFactChange(Sender: TObject);
+begin
+
 end;
 
 procedure TMainForm.buttonAddFactClick(Sender: TObject);
@@ -363,7 +509,12 @@ begin
   if ValidateFact() then
   begin
     FAnnotationFile.Updated:= True;
-    FAnnotationFile.CurrentSentence.AddFact(editArg1.Text, editRel.Text, editArg2.Text, checkBoxMinimalist.Checked);
+    FAnnotationFile.CurrentSentence.AddFact(editArg1.Text,
+                                            editRel.Text,
+                                            editArg2.Text,
+                                            checkBoxMinimal.Checked,
+                                            checkValidFact.Checked,
+                                            checkValidMinimal.Checked);
     LoadFormValues(lfAnnotation);
   end;
 end;
@@ -397,19 +548,51 @@ begin
   editArg1.Text:= '';
   editArg2.Text:= '';
   editRel.Text:= '';
-  checkBoxMinimalist.Checked:= True;
+  checkBoxMinimal.Checked:= True;
+  checkValidFact.Checked:= True;
+  checkValidMinimal.Checked:= True;
 end;
 
 procedure TMainForm.buttonDeleteCurrentFactClick(Sender: TObject);
 var
   index: Integer;
 begin
-  if ValidateDelFact then
+  if ValidateDelUpFact then
   begin
     index := gridFact.Row - 1;
     FAnnotationFile.Updated:= True;
     FAnnotationFile.CurrentSentence.RemoveFact(index);
     LoadFormValues(lfAnnotation);
+  end;
+end;
+
+procedure TMainForm.buttonShowSentences1Click(Sender: TObject);
+begin
+  if Assigned(FAnnotationFile) then
+    FAnnotationFile.CurrentSentenceID := FAnnotationFile.CurrentSentenceID + 1;
+  InitForm();
+  LoadFormValues();
+  gridFactClick(gridFact);
+end;
+
+procedure TMainForm.buttonUpdateFactClick(Sender: TObject);
+var
+  index: Integer;
+begin
+  if ValidateDelUpFact then
+  begin
+    index := gridFact.Row - 1;
+    FAnnotationFile.Updated:= True;
+    FAnnotationFile.CurrentSentence.UpdateFact(index,
+                                               editArg1.Text,
+                                               editRel.Text,
+                                               editArg2.Text,
+                                               checkBoxMinimal.Checked,
+                                               checkValidFact.Checked,
+                                               checkValidMinimal.Checked);
+    LoadFormValues(lfAnnotation);
+    gridFact.Row:= index + 1;
+    gridFact.SetFocus;
   end;
 end;
 
@@ -419,6 +602,9 @@ begin
     FreeAndNil(FAnnotationFile);
   //
   MainForm:= Nil;
+  //
+  KillTask('OpenIEAnnotation.exe');
+
 end;
 
 procedure TMainForm.FormShow(Sender: TObject);
@@ -433,44 +619,40 @@ begin
 end;
 
 procedure TMainForm.gridFactClick(Sender: TObject);
-var
-  arg1, rel, arg2: String;
-  currentSentence: TOpenIERecord;
-  sentence: String;
-const
-  REL_COLOR   = '#ffcc99';
-  ARG1_COLOR  = '#33cccc';
-  ARG2_COLOR  = '#ffff99';
-  BEGIN_SPAN1 = '<span style="background-color: ';
-  BEGIN_SPAN2 = ';">';
-  END_SPAN    = '</span>';
+begin
+  updateFactView;
+end;
+
+procedure TMainForm.gridFactSelection(Sender: TObject; aCol, aRow: Integer);
+begin
+  updateFactView;
+end;
+
+procedure TMainForm.MI_ARGOEClick(Sender: TObject);
+begin
+  if OpenDialogSentenceFile.Execute then
+    TAnnotationFile.ConvertOIEToAnnotationFile(osArgOE, OpenDialogSentenceFile.FileName);
+end;
+
+procedure TMainForm.MI_CLOSE_FILEClick(Sender: TObject);
 begin
   if Assigned(FAnnotationFile) then
-  if gridFact.RowCount > 1 then
   begin
-    arg1:= gridFact.Rows[gridFact.Row][0];
-    rel:= gridFact.Rows[gridFact.Row][1];
-    arg2:= gridFact.Rows[gridFact.Row][2];
-    if (arg1 <> '') and (rel <> '') and (arg2 <> '') then
-    begin
-      // Load current sentence
-      currentSentence:= FAnnotationFile.GetCurrentSentence();
-      if Assigned(currentSentence) then
-      begin
-        sentence:= currentSentence.Sentence;
-        sentence:= StringReplace(sentence, arg1, BEGIN_SPAN1 + ARG1_COLOR + BEGIN_SPAN2 + arg1 + END_SPAN, []);
-        sentence:= StringReplace(sentence, rel, BEGIN_SPAN1 + REL_COLOR + BEGIN_SPAN2 + rel + END_SPAN, []);
-        sentence:= StringReplace(sentence, arg2, BEGIN_SPAN1 + ARG2_COLOR + BEGIN_SPAN2 + arg2 + END_SPAN, []);
-        viewCurrentSentence.LoadFromString('<p>' + sentence + '</p>');
-        currentSentence:= Nil;
-      end;
-    end;
+    InitForm;
+    FreeAndNil(FAnnotationFile);
   end;
 end;
 
-procedure TMainForm.memoCurrentPOSSentenceChange(Sender: TObject);
+procedure TMainForm.MI_DEPENDENTIEClick(Sender: TObject);
 begin
+  if OpenDialogSentenceFile.Execute then
+    TAnnotationFile.ConvertOIEToAnnotationFile(osDependentIE, OpenDialogSentenceFile.FileName);
+end;
 
+procedure TMainForm.MI_DPTOIEClick(Sender: TObject);
+begin
+  if OpenDialogOIEFile.Execute then
+    TAnnotationFile.ConvertOIEToAnnotationFile(osDptOIE, OpenDialogOIEFile.FileName);
 end;
 
 procedure TMainForm.MI_EXP_RELONLYClick(Sender: TObject);
@@ -480,9 +662,54 @@ begin
       FAnnotationFile.ExportToFile(ffTabs, SaveDialogExportTXT.FileName);
 end;
 
-procedure TMainForm.MI_KAPPAClick(Sender: TObject);
+procedure TMainForm.MI_CALC_AGREEClick(Sender: TObject);
 begin
   //
+  if Assigned(FAnnotationFile) then
+    MessageDlg(MSG_CAPTION_ERRO, MSG_MESSAGEM_CLOSE_FILE, mtError, [mbCancel], 0)
+  else
+    TFormAgreement.Show();
+end;
+
+procedure TMainForm.MI_IBERLEF19Click(Sender: TObject);
+begin
+  if Assigned(FAnnotationFile) then
+    if SaveDialogExportTXT.Execute then
+      FAnnotationFile.ExportToFile(ffIberlef, SaveDialogExportTXT.FileName);
+end;
+
+procedure TMainForm.MI_IMPORT_SENTClick(Sender: TObject);
+var
+  f1, f2, fileName: String;
+begin
+  if Assigned(FAnnotationFile) then
+    MessageDlg(MSG_CAPTION_ERRO, MSG_MESSAGEM_CLOSE_FILE, mtError, [mbCancel], 0)
+  else
+  begin
+    if OpenDialogSentenceFile.Execute then
+    begin
+      {
+      f1:= OpenDialogSentenceFile.FileName;
+      f1:= StringReplace(f1, ExtractFileDir(f1), '', []);
+      f1:= Copy(f1, 2, Length(f1));
+      f2:= f1 + '.ann';
+      fileName:= ExtractFileDir(ParamStr(0)) + DirectorySeparator + 'convert' + DirectorySeparator + f2;
+      CopyFile(OpenDialogSentenceFile.FileName,
+        ExtractFileDir(ParamStr(0)) + DirectorySeparator + 'convert' + DirectorySeparator + f1);
+      f1:= 'convert/' + f1;
+      f2:= 'convert/' + f2;
+      }
+      TAnnotationFile.PrepareFileConvertion(OpenDialogSentenceFile.FileName, fileName, f1, f2);
+      ExecN2oieProcess(joConvertTxt, [f1, f2]);
+      //
+      FAnnotationFile:= TAnnotationFile.Create(fileName);
+      InitForm();
+      LoadFormValues();
+      //
+      RadioGroup1.ItemIndex:= 0;
+      SetMode;
+    end;
+  end;
 end;
 
 end.
